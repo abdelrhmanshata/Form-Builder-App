@@ -72,38 +72,41 @@
   </form>
 </template>
 
-<script>
-export default {
-  name: "BasicFormBuilder",
-  props: {
-    schema: {
-      type: Array,
-      required: true,
-    },
+<script setup>
+import { ref } from "vue";
+
+// Define props
+const props = defineProps({
+  schema: {
+    type: Array,
+    required: true,
   },
-  data() {
-    return {
-      formData: {},
-    };
-  },
-  created() {
-    // Initialize formData with default values
-    this.schema.forEach((field) => {
-      if (field.type === "checkbox") {
-        this.formData[field.model] = false;
-      } else if (field.type === "radio") {
-        this.formData[field.model] = null;
-      } else {
-        this.formData[field.model] = "";
-      }
-    });
-  },
-  methods: {
-    handleSubmit() {
-      console.log("Form submitted:", this.formData);
-      this.$emit("form-submit", this.formData); // Emit form data to parent
-    },
-  },
+});
+
+// Destructure `schema` from props
+const { schema } = props;
+
+// Reactive state for form data
+const formData = ref({});
+
+// Initialize `formData` with default values based on the schema
+schema.forEach((field) => {
+  if (field.type === "checkbox") {
+    formData.value[field.model] = false;
+  } else if (field.type === "radio") {
+    formData.value[field.model] = null;
+  } else {
+    formData.value[field.model] = "";
+  }
+});
+
+// Define emit for custom events
+const emit = defineEmits(["form-submit"]);
+
+// Method to handle form submission
+const handleSubmit = () => {
+  console.log("Form submitted:", formData.value);
+  emit("form-submit", formData.value); // Emit form data to parent
 };
 </script>
 

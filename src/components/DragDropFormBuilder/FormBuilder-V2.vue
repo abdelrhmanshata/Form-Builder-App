@@ -4,7 +4,7 @@
     <div class="sidebar w-25">
       <h3>Available Fields</h3>
       <div
-        v-for="field in availableFields"
+        v-for="field in filteredAvailableFields"
         :key="field.model"
         class="field-item"
         :draggable="true"
@@ -23,64 +23,6 @@
           class="form-control"
           placeholder="Enter field label"
         />
-
-        <!-- <label>Field Type</label>
-        <select v-model="selectedField.type" class="form-select">
-          <option value="text">Text</option>
-          <option value="email">Email</option>
-          <option value="number">Number</option>
-          <option value="textarea">Textarea</option>
-          <option value="select">Select</option>
-          <option value="checkbox">Checkbox</option>
-          <option value="radio">Radio</option>
-        </select> -->
-
-        <!-- Placeholder (for input, textarea, etc.) -->
-        <!-- <div
-          v-if="
-            ['text', 'email', 'number', 'textarea'].includes(selectedField.type)
-          "
-        >
-          <label>Placeholder</label>
-          <input
-            v-model="selectedField.placeholder"
-            type="text"
-            class="form-control"
-            placeholder="Enter placeholder"
-          />
-        </div> -->
-
-        <!-- Options for select, radio (dynamic) -->
-        <!-- <div v-if="['select', 'radio'].includes(selectedField.type)">
-          <label>Options</label>
-          <div
-            v-for="(option, index) in selectedField.options"
-            :key="index"
-            class="input-group mb-2"
-          >
-            <input
-              v-model="selectedField.options[index]"
-              type="text"
-              class="form-control"
-              placeholder="Enter option"
-            />
-            <button
-              type="button"
-              class="btn btn-outline-danger"
-              @click="removeOption(index)"
-            >
-              Remove
-            </button>
-          </div>
-          <button
-            type="button"
-            class="btn btn-outline-primary"
-            @click="addOption"
-          >
-            Add Option
-          </button>
-        </div> -->
-
         <button
           type="button"
           class="btn btn-outline-success mt-3 flex-1 w-100"
@@ -100,8 +42,11 @@
         v-for="(field, index) in schema"
         :key="field.model"
         class="p-1"
-        @drop.prevent="onDrop($event, field)"
+        style="cursor: all-scroll"
+        draggable="true"
+        @dragstart="onDragStart(field)"
         @dragover.prevent
+        @drop.prevent="onReorderDrop($event, index)"
         @click="selectField(index)"
       >
         <!-- Label -->
@@ -109,7 +54,6 @@
         <!-- Field -->
         <div class="d-flex">
           <div class="flex-1-1">
-            <!-- Dynamic Form Fields based on schema -->
             <input
               v-if="
                 ['text', 'email', 'number', 'password'].includes(field.type)
@@ -173,13 +117,10 @@
           </div>
         </div>
       </div>
-      <!-- Submit Button: only visible when formData has data -->
-      <!-- <button v-if="isFormValid" type="submit" class="btn btn-primary w-100">
-        Submit
-      </button> -->
+      <!-- Save Schema -->
       <button
         type="button"
-        class="btn btn-primary w-100 mt-10"
+        class="btn btn-primary text-white w-100 mt-10"
         @click="saveSchema"
       >
         Save Schema
@@ -187,12 +128,9 @@
     </form>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, watch } from "vue";
-import { defineProps, defineEmits } from "vue";
 
-// تعريف الخصائص (Props) والأحداث (Emits)
 const props = defineProps({
   schema: {
     type: Array,
@@ -203,39 +141,14 @@ const props = defineProps({
 
 const emit = defineEmits(["form-submit", "schema-update"]);
 
-// البيانات (Data)
 const formData = ref({});
 const selectedField = ref(null);
 const availableFields = ref([
-  {
-    model: "name",
-    label: "Name",
-    type: "text",
-    placeholder: "Enter your name",
-  },
-  {
-    model: "email",
-    label: "Email",
-    type: "email",
-    placeholder: "Enter your email",
-  },
-  {
-    model: "age",
-    label: "Age",
-    type: "number",
-    placeholder: "Enter your age",
-  },
-  {
-    model: "bio",
-    label: "Bio",
-    type: "textarea",
-    placeholder: "Enter your bio",
-  },
-  {
-    model: "newsletter",
-    label: "Subscribe to newsletter",
-    type: "checkbox",
-  },
+  { model: "name", label: "Name", type: "text" },
+  { model: "email", label: "Email", type: "email" },
+  { model: "age", label: "Age", type: "number" },
+  { model: "bio", label: "Bio", type: "textarea" },
+  { model: "newsletter", label: "Subscribe to newsletter", type: "checkbox" },
   {
     model: "gender",
     label: "Gender",
@@ -244,10 +157,16 @@ const availableFields = ref([
   },
 ]);
 
-// الحقول المسحوبة أثناء السحب
 const draggedField = ref(null);
 
-// إعداد البيانات عند الإنشاء
+// Computed property to filter available fields
+const filteredAvailableFields = computed(() => {
+  const addedModels = props.schema.map((field) => field.model);
+  return availableFields.value.filter(
+    (field) => !addedModels.includes(field.model)
+  );
+});
+
 const initializeFormData = () => {
   formData.value = {};
   props.schema.forEach((field) => {
@@ -261,29 +180,30 @@ const initializeFormData = () => {
   });
 };
 
-// الحقل المطلوب لتحديد ما إذا كان النموذج صالحًا
-const isFormValid = computed(() => Object.keys(formData.value).length > 0);
-
-// دالة لإرسال البيانات عند تقديم النموذج
 const handleSubmit = () => {
-  console.log("Form submitted:", formData.value);
   emit("form-submit", formData.value);
 };
 
-// التعامل مع السحب والإفلات
 const onDragStart = (field) => {
   draggedField.value = field;
 };
 
-const onDrop = (event, field) => {
-  const index = props.schema.indexOf(field);
-  if (index !== -1) {
-    props.schema.splice(index, 0, draggedField.value);
-    initializeFormData();
+const onReorderDrop = (event, dropIndex) => {
+  const draggedIndex = props.schema.findIndex(
+    (field) => field.model === draggedField.value.model
+  );
+
+  if (draggedIndex === -1) {
+    // Add new field
+    props.schema.splice(dropIndex, 0, { ...draggedField.value });
+  } else {
+    // Reorder field
+    const [removed] = props.schema.splice(draggedIndex, 1);
+    props.schema.splice(dropIndex, 0, removed);
   }
+  initializeFormData();
 };
 
-// تعديل وإزالة الحقول
 const removeField = (index) => {
   const removedField = props.schema.splice(index, 1)[0];
   delete formData.value[removedField.model];
@@ -304,31 +224,13 @@ const saveFieldChanges = () => {
   }
 };
 
-// إضافة أو إزالة الخيارات
-const addOption = () => {
-  if (selectedField.value) {
-    selectedField.value.options.push("");
-  }
-};
-
-const removeOption = (index) => {
-  if (selectedField.value) {
-    selectedField.value.options.splice(index, 1);
-  }
-};
-
-// إرسال التحديثات للمكون الأب
 const saveSchema = () => {
   emit("schema-update", props.schema);
-  console.log("Schema saved");
 };
 
-// مراقبة تغييرات الـ schema
 watch(
   () => props.schema,
-  (newSchema) => {
-    initializeFormData();
-  },
+  () => initializeFormData(),
   { immediate: true }
 );
 </script>
