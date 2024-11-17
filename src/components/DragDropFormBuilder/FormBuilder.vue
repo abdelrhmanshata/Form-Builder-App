@@ -156,7 +156,6 @@ const availableFields = ref([
     options: ["Male", "Female"],
   },
 ]);
-
 const draggedField = ref(null);
 
 // Computed property to filter available fields
@@ -207,6 +206,7 @@ const onReorderDrop = (event, dropIndex) => {
 const removeField = (index) => {
   const removedField = props.schema.splice(index, 1)[0];
   delete formData.value[removedField.model];
+  console.log(formData.value);
 };
 
 const selectField = (index) => {

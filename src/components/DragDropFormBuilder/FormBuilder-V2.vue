@@ -156,7 +156,6 @@ const availableFields = ref([
     options: ["Male", "Female"],
   },
 ]);
-
 const draggedField = ref(null);
 
 // Computed property to filter available fields
