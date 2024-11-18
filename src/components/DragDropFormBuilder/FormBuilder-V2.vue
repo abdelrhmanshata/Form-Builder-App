@@ -2,20 +2,31 @@
   <div class="form-builder-container">
     <!-- Sidebar with available fields -->
     <div class="sidebar w-25">
+      <!-- Available Fields -->
       <h3>Available Fields</h3>
-      <div
-        v-for="field in filteredAvailableFields"
-        :key="field.model"
-        class="field-item"
-        :draggable="true"
-        @dragstart="onDragStart(field)"
-      >
-        <span>{{ field.label }}</span>
+      <div v-if="filteredAvailableFields.length > 0">
+        <div
+          v-for="field in filteredAvailableFields"
+          :key="field.model"
+          class="field-item"
+          :draggable="true"
+          @dragstart="onDragStart(field)"
+        >
+          <span>{{ field.label }}</span>
+        </div>
       </div>
+      <div v-else class="no-fields-message">No available fields found</div>
+
       <hr />
+
       <!-- Control Panel for selected field -->
       <div v-if="selectedField" class="control-panel mt-4">
-        <h4>Edit Field</h4>
+        <div class="d-flex justify-content-between align-items-center">
+          <h4>Edit Field</h4>
+          <v-icon @click="cancelEditFiled"> mdi-window-close </v-icon>
+        </div>
+
+        <!-- Label -->
         <label>Field Label</label>
         <input
           v-model="selectedField.label"
@@ -23,6 +34,63 @@
           class="form-control"
           placeholder="Enter field label"
         />
+        <!-- Required CheckBox -->
+        <div class="form-check mt-3">
+          <input
+            type="checkbox"
+            v-model="selectedField.required"
+            id="required-field"
+            class="form-check-input"
+          />
+          <label for="required-field" class="form-check-label">Required</label>
+        </div>
+
+        <hr />
+
+        <!-- Placeholder (for input, textarea, etc.) -->
+        <div
+          v-if="
+            ['text', 'email', 'number', 'textarea'].includes(selectedField.type)
+          "
+        >
+          <label>Placeholder</label>
+          <input
+            v-model="selectedField.placeholder"
+            type="text"
+            class="form-control"
+            placeholder="Enter placeholder"
+          />
+        </div>
+
+        <!-- Options for select, radio (dynamic) -->
+        <div v-if="['select', 'radio'].includes(selectedField.type)">
+          <hr />
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label>Options</label>
+            <v-icon class="text-blue border rounded-1" @click="addOption"
+              >mdi-playlist-plus</v-icon
+            >
+          </div>
+
+          <div
+            v-for="(option, index) in selectedField.options"
+            :key="index"
+            class="input-group mb-2 align-center"
+          >
+            <input
+              v-model="selectedField.options[index]"
+              type="text"
+              class="form-control"
+              placeholder="Enter option"
+            />
+            <v-icon class="text-red" @click="removeOption(index)">
+              mdi-trash-can-outline
+            </v-icon>
+          </div>
+        </div>
+
+        <hr />
+
         <button
           type="button"
           class="btn btn-outline-success mt-3 flex-1 w-100"
@@ -34,10 +102,7 @@
     </div>
 
     <!-- Form Area with Drag and Drop support -->
-    <form
-      @submit.prevent="handleSubmit"
-      class="p-4 bg-light border rounded w-75"
-    >
+    <form class="p-4 bg-light border rounded w-75">
       <div
         v-for="(field, index) in schema"
         :key="field.model"
@@ -60,6 +125,7 @@
               "
               :type="field.type"
               :id="field.model"
+              :placeholder="field.placeholder"
               v-model="formData[field.model]"
               class="form-control"
             />
@@ -117,6 +183,15 @@
           </div>
         </div>
       </div>
+      <!-- <div
+        v-if="schema.length === 0"
+        class="p-3 bg-light text-center border"
+        style="min-height: 200px; min-width: 100%"
+      >
+        <p class="text-muted">
+          No fields available. Drag and drop fields here.
+        </p>
+      </div> -->
       <!-- Save Schema -->
       <button
         type="button"
@@ -204,12 +279,30 @@ const onReorderDrop = (event, dropIndex) => {
 };
 
 const removeField = (index) => {
+  const field = props.schema[index];
+  if (field.required) {
+    alert("This field is required and cannot be removed.");
+    return;
+  }
   const removedField = props.schema.splice(index, 1)[0];
   delete formData.value[removedField.model];
+  console.log(formData.value);
 };
 
 const selectField = (index) => {
   selectedField.value = { ...props.schema[index] };
+};
+
+const addOption = () => {
+  if (selectedField.value && selectedField.value.options) {
+    selectedField.value.options.push("");
+  }
+};
+
+const removeOption = (index) => {
+  if (selectedField.value && selectedField.value.options) {
+    selectedField.value.options.splice(index, 1);
+  }
 };
 
 const saveFieldChanges = () => {
@@ -221,6 +314,10 @@ const saveFieldChanges = () => {
     selectedField.value = null;
     initializeFormData();
   }
+};
+
+const cancelEditFiled = () => {
+  selectedField.value = null;
 };
 
 const saveSchema = () => {
@@ -244,6 +341,12 @@ watch(
   width: 250px;
   border-right: 1px solid #ccc;
   padding: 10px;
+}
+.no-fields-message {
+  text-align: center;
+  font-size: 1rem;
+  color: #999;
+  margin-top: 10px;
 }
 
 .field-item {

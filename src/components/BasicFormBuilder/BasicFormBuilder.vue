@@ -12,6 +12,7 @@
         :placeholder="field.placeholder"
         v-model="formData[field.model]"
         class="form-control"
+        :required="field.required"
       />
 
       <!-- Select Dropdown -->
@@ -20,6 +21,7 @@
         :id="field.model"
         v-model="formData[field.model]"
         class="form-select"
+        :required="field.required"
       >
         <option value="" disabled>Select {{ field.label }}</option>
         <option v-for="option in field.options" :key="option" :value="option">
@@ -31,6 +33,7 @@
       <div v-if="field.type === 'checkbox'" class="form-check">
         <input
           :id="field.model"
+          :required="field.required"
           type="checkbox"
           v-model="formData[field.model]"
           class="form-check-input"
@@ -46,6 +49,7 @@
           <input
             :id="`${field.model}-${option}`"
             :value="option"
+            :required="field.required"
             type="radio"
             v-model="formData[field.model]"
             class="form-check-input"
@@ -61,6 +65,7 @@
         v-if="field.type === 'textarea'"
         :id="field.model"
         :placeholder="field.placeholder"
+        :required="field.required"
         v-model="formData[field.model]"
         rows="3"
         class="form-control"
@@ -68,7 +73,9 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" class="btn btn-primary text-white w-100">Submit</button>
+    <button type="submit" class="btn btn-primary text-white w-100">
+      Submit
+    </button>
   </form>
 </template>
 

@@ -29,35 +29,41 @@ const formSchema = ref(
       label: "Name",
       type: "text",
       placeholder: "Enter your name",
+      required: true,
     },
     {
       model: "email",
       label: "Email",
       type: "email",
       placeholder: "Enter your email",
+      required: true,
     },
     {
       model: "age",
       label: "Age",
       type: "number",
       placeholder: "Enter your age",
+      required: true,
     },
     {
       model: "bio",
       label: "Bio",
       type: "textarea",
       placeholder: "Enter your bio",
+      required: false,
     },
     {
       model: "newsletter",
       label: "Subscribe to newsletter",
       type: "checkbox",
+      required: false,
     },
     {
       model: "gender",
       label: "Gender",
       type: "radio",
       options: ["Male", "Female"],
+      required: false,
     },
   ]
 );
