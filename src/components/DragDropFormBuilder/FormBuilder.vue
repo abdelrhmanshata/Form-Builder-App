@@ -23,6 +23,49 @@
           class="form-control"
           placeholder="Enter field label"
         />
+
+        <!-- Placeholder (for input, textarea, etc.) -->
+        <div
+          v-if="
+            ['text', 'email', 'number', 'textarea'].includes(selectedField.type)
+          "
+        >
+          <label>Placeholder</label>
+          <input
+            v-model="selectedField.placeholder"
+            type="text"
+            class="form-control"
+            placeholder="Enter placeholder"
+          />
+        </div>
+
+        <!-- Options for select, radio (dynamic) -->
+        <div v-if="['select', 'radio'].includes(selectedField.type)">
+          <hr />
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label>Options</label>
+            <v-icon class="text-blue border rounded-1" @click="addOption"
+              >mdi-playlist-plus</v-icon
+            >
+          </div>
+
+          <div
+            v-for="(option, index) in selectedField.options"
+            :key="index"
+            class="input-group mb-2 align-center"
+          >
+            <input
+              v-model="selectedField.options[index]"
+              type="text"
+              class="form-control"
+              placeholder="Enter option"
+            />
+            <v-icon class="text-red" @click="removeOption(index)">
+              mdi-trash-can-outline
+            </v-icon>
+          </div>
+        </div>
+        <hr />
         <button
           type="button"
           class="btn btn-outline-success mt-3 flex-1 w-100"
@@ -211,6 +254,18 @@ const removeField = (index) => {
 
 const selectField = (index) => {
   selectedField.value = { ...props.schema[index] };
+};
+
+const addOption = () => {
+  if (selectedField.value && selectedField.value.options) {
+    selectedField.value.options.push("");
+  }
+};
+
+const removeOption = (index) => {
+  if (selectedField.value && selectedField.value.options) {
+    selectedField.value.options.splice(index, 1);
+  }
 };
 
 const saveFieldChanges = () => {

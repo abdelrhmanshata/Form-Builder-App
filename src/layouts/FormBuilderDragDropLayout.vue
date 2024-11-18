@@ -15,54 +15,67 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import BasicFormBuilder from "../components/BasicFormBuilder/BasicFormBuilder.vue";
 import FormBuilder from "../components/DragDropFormBuilder/FormBuilder.vue";
 
-const formSchema = ref([
-  {
-    model: "name",
-    label: "Name",
-    type: "text",
-    placeholder: "Enter your name",
-  },
-  {
-    model: "email",
-    label: "Email",
-    type: "email",
-    placeholder: "Enter your email",
-  },
-  {
-    model: "age",
-    label: "Age",
-    type: "number",
-    placeholder: "Enter your age",
-  },
-  {
-    model: "bio",
-    label: "Bio",
-    type: "textarea",
-    placeholder: "Enter your bio",
-  },
-  {
-    model: "newsletter",
-    label: "Subscribe to newsletter",
-    type: "checkbox",
-  },
-  {
-    model: "gender",
-    label: "Gender",
-    type: "radio",
-    options: ["Male", "Female"],
-  },
-]);
+const SCHEMA_STORAGE_KEY = "formSchema";
+
+const formSchema = ref(
+  // if not found schema you can use the default schema
+  JSON.parse(localStorage.getItem(SCHEMA_STORAGE_KEY)) || [
+    {
+      model: "name",
+      label: "Name",
+      type: "text",
+      placeholder: "Enter your name",
+    },
+    {
+      model: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "Enter your email",
+    },
+    {
+      model: "age",
+      label: "Age",
+      type: "number",
+      placeholder: "Enter your age",
+    },
+    {
+      model: "bio",
+      label: "Bio",
+      type: "textarea",
+      placeholder: "Enter your bio",
+    },
+    {
+      model: "newsletter",
+      label: "Subscribe to newsletter",
+      type: "checkbox",
+    },
+    {
+      model: "gender",
+      label: "Gender",
+      type: "radio",
+      options: ["Male", "Female"],
+    },
+  ]
+);
 
 const handleFormSubmit = (formData) => {
   console.log("Form data submitted from FormBuilder:", formData);
 };
 
 const updateSchema = (updatedSchema) => {
-  formSchema.value = [...updatedSchema]; // تحديث النسخة الأصلية من الـ schema
-  console.log("Schema updated in parent:", formSchema.value);
+  formSchema.value = [...updatedSchema];
+  localStorage.setItem(SCHEMA_STORAGE_KEY, JSON.stringify(formSchema.value));
+  console.log(
+    "Schema updated in parent and saved to localStorage:",
+    formSchema.value
+  );
 };
+
+onMounted(() => {
+  console.log("Loaded schema from localStorage:", formSchema.value);
+});
 </script>
