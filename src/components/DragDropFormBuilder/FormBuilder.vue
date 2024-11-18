@@ -102,16 +102,32 @@
     </div>
 
     <!-- Form Area with Drag and Drop support -->
-    <form class="p-4 bg-light border rounded w-75">
+    <form class="form-area p-4 bg-light border rounded w-75">
+      <!-- Placeholder for drag-and-drop if schema is empty -->
+      <div
+        v-if="schema.length === 0"
+        class="p-3 bg-light border text-center d-flex justify-center align-center"
+        style="min-height: 150px; cursor: pointer"
+        draggable="true"
+        @dragover.prevent
+        @drop.prevent="onReorderDrop($event, index)"
+        @dragstart="onDragStart(field)"
+        @click="selectField(index)"
+      >
+        <p class="text-muted">
+          No fields available. Drag and drop fields here.
+        </p>
+      </div>
+
       <div
         v-for="(field, index) in schema"
         :key="field.model"
         class="p-1"
         style="cursor: all-scroll"
         draggable="true"
-        @dragstart="onDragStart(field)"
         @dragover.prevent
         @drop.prevent="onReorderDrop($event, index)"
+        @dragstart="onDragStart(field)"
         @click="selectField(index)"
       >
         <!-- Label -->
@@ -183,15 +199,7 @@
           </div>
         </div>
       </div>
-      <!-- <div
-        v-if="schema.length === 0"
-        class="p-3 bg-light text-center border"
-        style="min-height: 200px; min-width: 100%"
-      >
-        <p class="text-muted">
-          No fields available. Drag and drop fields here.
-        </p>
-      </div> -->
+
       <!-- Save Schema -->
       <button
         type="button"
@@ -254,15 +262,12 @@ const initializeFormData = () => {
   });
 };
 
-const handleSubmit = () => {
-  emit("form-submit", formData.value);
-};
-
 const onDragStart = (field) => {
   draggedField.value = field;
 };
 
 const onReorderDrop = (event, dropIndex) => {
+  event.preventDefault();
   const draggedIndex = props.schema.findIndex(
     (field) => field.model === draggedField.value.model
   );
@@ -286,7 +291,7 @@ const removeField = (index) => {
   }
   const removedField = props.schema.splice(index, 1)[0];
   delete formData.value[removedField.model];
-  console.log(formData.value);
+  initializeFormData();
 };
 
 const selectField = (index) => {
@@ -335,6 +340,27 @@ watch(
 .form-builder-container {
   display: flex;
   gap: 2rem;
+  min-height: 400px;
+}
+
+form {
+  min-height: 200px;
+}
+
+.form-area {
+  border: 2px dashed #ccc;
+  min-height: 100px;
+  position: relative;
+  background-color: #f0f0f0;
+}
+
+.form-area.active {
+  border: 2px solid #007bff;
+}
+
+.form-builder-container .form-area {
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar {
@@ -355,6 +381,8 @@ watch(
   background: #f0f0f0;
   margin-bottom: 10px;
   border-radius: 5px;
+  position: relative;
+  z-index: 2;
 }
 
 .field-item:hover {
